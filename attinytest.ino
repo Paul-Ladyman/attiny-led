@@ -1,16 +1,20 @@
 int pwmPin = 0;
 int pwmPin2 = 1;
+int analogInPin = A1;
 
 void setup()
 {
   pinMode(pwmPin, OUTPUT);
   pinMode(pwmPin2, OUTPUT);
+  pinMode(analogInPin, INPUT);
 }
 
 void loop()
 {
+  int timerInput = analogRead(analogInPin);
+  int timeout = map(timerInput, 0, 1023, 1, 10);
+  
   float multiplier1 = 0.1;
-  int timeout = 10;
   float multiplier2 = 1.0 - multiplier1;
 
   /*
