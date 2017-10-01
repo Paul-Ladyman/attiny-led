@@ -3,7 +3,8 @@
 #define ANALOGLOW 0
 #define FLASHMODE 0
 #define SFLASHMODE 1
-#define NUMMODES 2
+#define CONSTANTMODE 2
+#define NUMMODES 3
 #define ANALOGHIGH 1023
 
 // pin definitions
@@ -70,15 +71,20 @@ int readModeInput(void) {
   return modePinState;
 }
 
-boolean modeToggled(void) {
-  int newMode = readModeInput();
-
+boolean modeToggled(int newMode) {
   if (newMode != lastModeToggleState) {
     lastModeToggleState = newMode;
     return newMode == HIGH;
   }
   else {
     return false;
+  }
+}
+
+void changeMode(void) {
+  mode++;
+  if (mode == NUMMODES) {
+    mode = FLASHMODE;
   }
 }
 
@@ -91,52 +97,56 @@ void writeLeds(int pwmVal, float led1Weight, float led2Weight) {
   analogWrite(pwmPin2, PWMHIGH - (pwmVal * led2Weight));
 }
 
-void loop() {
-  if (modeToggled()) {
-    mode++;
-    if (mode == NUMMODES) {
-      mode = FLASHMODE;
-    }
+int getOutput(int pwmVal, int mode, boolean fadingIn) {
+  switch (mode) {
+    case CONSTANTMODE:
+      return PWMHIGH;
+    case SFLASHMODE:
+      return pwmVal;
+    case FLASHMODE:
+    default:
+      if (fadingIn) {
+        return PWMHIGH;
+      }
+      else {
+        return PWMLOW;
+      }
+
   }
+}
 
-  int timeout = readTimerInput();
-
-  float multiplier1 = readPanInput();
-  float multiplier2 = 1.0 - multiplier1;
-
+void setNextPwmVal(void) {
   if (fadingIn) {
-
-    if (mode == FLASHMODE) {
-      writeLeds(PWMHIGH, multiplier1, multiplier2);
-    }
-    else {
-      writeLeds(i, multiplier1, multiplier2);
-    }
-
     if (i == PWMHIGH) {
       fadingIn = false;
     }
     else {
       i++;
     }
-
-    delayMicroseconds(timeout);
   }
   else {
-    if (mode == FLASHMODE) {
-      writeLeds(PWMLOW, multiplier1, multiplier2);
-    }
-    else {
-      writeLeds(i, multiplier1, multiplier2);
-    }
-
     if (i == PWMLOW) {
       fadingIn = true;
     }
     else {
       i--;
     }
-
-    delayMicroseconds(timeout);
   }
+}
+
+void loop() {
+  int newMode = readModeInput();
+
+  if (modeToggled(newMode)) {
+    changeMode();
+  }
+  
+  float multiplier1 = readPanInput();
+  float multiplier2 = 1.0 - multiplier1;
+
+  writeLeds(getOutput(i, mode, fadingIn), multiplier1, multiplier2);
+
+  setNextPwmVal();
+
+  delayMicroseconds(readTimerInput());
 }
