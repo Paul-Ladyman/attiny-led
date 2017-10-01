@@ -5,7 +5,8 @@
 
 int pwmPin = 0;
 int pwmPin2 = 1;
-int analogInPin = A1;
+int timerPin = A1;
+int panPin = A2;
 
 int i = 0;
 boolean fadingIn = true;
@@ -13,12 +14,18 @@ boolean fadingIn = true;
 void setup() {
   pinMode(pwmPin, OUTPUT);
   pinMode(pwmPin2, OUTPUT);
-  pinMode(analogInPin, INPUT);
+  pinMode(timerPin, INPUT);
+  pinMode(panPin, INPUT);
 }
 
 int readTimerInput(void) {
-  int timerInput = analogRead(analogInPin);
+  int timerInput = analogRead(timerPin);
   return map(timerInput, ANALOGLOW, ANALOGHIGH, 10, 5000);
+}
+
+float readPanInput(void) {
+  float timerInput = (float) analogRead(panPin);
+  return timerInput / 1023.0;
 }
 
 /*
@@ -33,7 +40,7 @@ void writeLeds(int pwmVal, float led1Weight, float led2Weight) {
 void loop() {
   int timeout = readTimerInput();
 
-  float multiplier1 = 0.1;
+  float multiplier1 = readPanInput();
   float multiplier2 = 1.0 - multiplier1;
 
   if (fadingIn) {
