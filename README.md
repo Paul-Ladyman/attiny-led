@@ -4,7 +4,8 @@ Code written on the Arduino platform originally for the Attiny85 microprocessor 
 
 Features:
 
-* Flash two LEDs using PWM
+* Control two LEDs
+* Three modes; constant, flashing and PWM flashing
 * Control flash rate
 * Pan between each LED
 
